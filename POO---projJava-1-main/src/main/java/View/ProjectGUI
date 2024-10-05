@@ -1,0 +1,193 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.*;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class ProjectGUI extends JFrame {
+
+    private JTextArea textArea;
+    private JLabel statusBar;
+    private Timer backgroundTimer;
+    private int animationSpeed = 1000; // Default animation speed (1 second)
+
+    public ProjectGUI() {
+        // Set the title and the icon of the window
+        setTitle("Projeto GUI");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(600, 400);
+
+        // Set the icon of the application
+        ImageIcon icon = new ImageIcon("app_icon.png"); // Put your icon path here
+        setIconImage(icon.getImage());
+
+        // Initialize the text area and status bar
+        textArea = new JTextArea();
+        statusBar = new JLabel("Status: No file opened");
+
+        // Set the layout
+        setLayout(new BorderLayout());
+        add(new JScrollPane(textArea), BorderLayout.CENTER);
+        add(statusBar, BorderLayout.SOUTH);
+
+        // Create the menu bar
+        createMenuBar();
+
+        setVisible(true);
+    }
+
+    private void createMenuBar() {
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        JMenu configMenu = new JMenu("Configuração");
+        JMenu helpMenu = new JMenu("Ajuda");
+
+        // File Menu Items
+        JMenuItem openFile = new JMenuItem("Open File");
+        JMenuItem closeFile = new JMenuItem("Close File");
+        JMenuItem exitApp = new JMenuItem("Exit");
+
+        // Add action listeners to the file menu items
+        openFile.addActionListener(e -> openFile());
+        closeFile.addActionListener(e -> closeFile());
+        exitApp.addActionListener(e -> System.exit(0));
+
+        // Add file menu items
+        fileMenu.add(openFile);
+        fileMenu.add(closeFile);
+        fileMenu.addSeparator();
+        fileMenu.add(exitApp);
+
+        // Config Menu Items
+        JMenuItem patternMenu = new JMenuItem("Padrões");
+        JMenuItem colorMenu = new JMenuItem("Cores");
+        JMenuItem speedMenu = new JMenuItem("Velocidade");
+
+        // Add action listeners to the config menu items
+        patternMenu.addActionListener(e -> changePattern());
+        colorMenu.addActionListener(e -> changeColor());
+        speedMenu.addActionListener(e -> changeSpeed());
+
+        // Add config menu items
+        configMenu.add(patternMenu);
+        configMenu.add(colorMenu);
+        configMenu.add(speedMenu);
+
+        // Help Menu Items
+        JMenuItem helpItem = new JMenuItem("Ajuda");
+        JMenuItem aboutItem = new JMenuItem("Sobre");
+
+        // Add action listeners to the help menu items
+        helpItem.addActionListener(e -> showHelp());
+        aboutItem.addActionListener(e -> showAbout());
+
+        // Add help menu items
+        helpMenu.add(helpItem);
+        helpMenu.add(aboutItem);
+
+        // Add menus to the menu bar
+        menuBar.add(fileMenu);
+        menuBar.add(configMenu);
+        menuBar.add(helpMenu);
+
+        // Set the menu bar in the frame
+        setJMenuBar(menuBar);
+    }
+
+    private void openFile() {
+        JFileChooser fileChooser = new JFileChooser();
+        int option = fileChooser.showOpenDialog(this);
+        if (option == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                textArea.read(reader, null);
+                statusBar.setText("Status: File opened - " + file.getName());
+            } catch (IOException e) {
+                statusBar.setText("Status: Error opening file");
+            }
+        }
+    }
+
+    private void closeFile() {
+        textArea.setText("");
+        statusBar.setText("Status: No file opened");
+    }
+
+    private void changePattern() {
+        if (backgroundTimer != null) {
+            backgroundTimer.cancel();
+        }
+        backgroundTimer = new Timer();
+        backgroundTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                getContentPane().setBackground(new Color(new Random().nextInt(256), new Random().nextInt(256), new Random().nextInt(256)));
+            }
+        }, 0, animationSpeed);
+    }
+
+    private void changeColor() {
+        Color newColor = JColorChooser.showDialog(this, "Choose Background Color", getContentPane().getBackground());
+        if (newColor != null) {
+            getContentPane().setBackground(newColor);
+        }
+    }
+
+    private void changeSpeed() {
+        String[] options = {"Slow", "Medium", "Fast"};
+        int response = JOptionPane.showOptionDialog(this, "Choose Animation Speed", "Speed", JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
+
+        if (response == 0) {
+            animationSpeed = 2000; // Slow
+        } else if (response == 1) {
+            animationSpeed = 1000; // Medium
+        } else if (response == 2) {
+            animationSpeed = 500; // Fast
+        }
+
+        changePattern();
+    }
+
+    private void showHelp() {
+        // Create a dialog for help
+        JDialog helpDialog = new JDialog(this, "Help", true);
+        helpDialog.setSize(400, 300);
+        helpDialog.setLayout(new BorderLayout());
+
+        // Create text and image content
+        JTextArea helpText = new JTextArea("This is the help section. Here you will find information about how to use the application.");
+        helpText.setLineWrap(true);
+        helpText.setWrapStyleWord(true);
+        helpText.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(helpText);
+
+        // Add image to the help dialog
+        ImageIcon helpIcon = new ImageIcon("help_image.png"); // Add path to an image
+        JLabel imageLabel = new JLabel(helpIcon);
+
+        // Create buttons for interaction
+        JPanel buttonPanel = new JPanel();
+        JButton okButton = new JButton("OK");
+        okButton.addActionListener(e -> helpDialog.dispose());
+
+        // Add components to the dialog
+        helpDialog.add(scrollPane, BorderLayout.CENTER);
+        helpDialog.add(imageLabel, BorderLayout.NORTH);
+        buttonPanel.add(okButton);
+        helpDialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Show the dialog
+        helpDialog.setVisible(true);
+    }
+
+    private void showAbout() {
+        JOptionPane.showMessageDialog(this, "Projeto GUI\nVersion 1.0\nAuthor: Your Name", "About", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(ProjectGUI::new);
+    }
+}

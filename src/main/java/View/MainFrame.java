@@ -5,8 +5,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class MainFrame extends JFrame {
     private AnimatedBackgroundPanel animationPanel;
@@ -16,6 +18,8 @@ public class MainFrame extends JFrame {
     private String shapeType = "Circle";
 
     private JPanel textPanel;
+    private JProgressBar progressBar;  // Declaração da barra de progresso
+    private JPanel titleBar; // Declaração do painel da barra de título
 
     public MainFrame() {
         setTitle("Shape Animation");
@@ -27,12 +31,24 @@ public class MainFrame extends JFrame {
         setContentPane(layeredPane);
         layeredPane.setLayout(null);
 
+        // Criar e configurar a barra de título
+        titleBar = new JPanel();
+        titleBar.setBackground(Color.LIGHT_GRAY); // Cor de fundo da barra de título
+        titleBar.setBounds(0, 0, getWidth(), 30); // Define a posição e o tamanho da barra de título
+        titleBar.setLayout(new FlowLayout(FlowLayout.CENTER)); // Centraliza o conteúdo no painel
+
+        JLabel titleLabel = new JLabel("Project GUI");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16)); // Define a fonte e o estilo
+        titleBar.add(titleLabel); // Adiciona o rótulo à barra de título
+
+        layeredPane.add(titleBar, Integer.valueOf(0)); // Adiciona a barra de título ao layeredPane
+
         animationPanel = new AnimatedBackgroundPanel();
         animationPanel.setShapeColor(shapeColor);
         animationPanel.setAnimationSpeed(animationSpeed);
         animationPanel.setShapeType(shapeType);
-        animationPanel.setBounds(0, 0, getWidth(), getHeight());
-        layeredPane.add(animationPanel, Integer.valueOf(0));
+        animationPanel.setBounds(0, 30, getWidth(), getHeight() - 30); // Ajusta a altura do painel de animação
+        layeredPane.add(animationPanel, Integer.valueOf(1));
 
         textArea = new JTextArea();
         textArea.setEditable(false);
@@ -50,12 +66,21 @@ public class MainFrame extends JFrame {
         textPanel = new JPanel(new BorderLayout());
         textPanel.setOpaque(false);
         textPanel.add(scrollPane, BorderLayout.CENTER);
-        layeredPane.add(textPanel, Integer.valueOf(1));
+        layeredPane.add(textPanel, Integer.valueOf(2));
+
+        progressBar = new JProgressBar();  // Inicialização da barra de progresso
+        progressBar.setIndeterminate(true); // Modo indeterminado inicialmente
+        progressBar.setString("Loading...");
+        progressBar.setStringPainted(true);
+        progressBar.setVisible(false); // Inicialmente invisível
+        layeredPane.add(progressBar, Integer.valueOf(3));
 
         addComponentListener(new java.awt.event.ComponentAdapter() {
             public void componentResized(java.awt.event.ComponentEvent evt) {
-                animationPanel.setBounds(0, 0, getWidth(), getHeight());
+                titleBar.setBounds(0, 0, getWidth(), 30); // Ajusta a posição da barra de título
+                animationPanel.setBounds(0, 30, getWidth(), getHeight() - 30); // Ajusta a altura do painel de animação
                 resizeTextPanel();
+                progressBar.setBounds((getWidth() - 300) / 2, (getHeight() - 30), 300, 30); // Centralizar a barra de progresso
             }
         });
 
@@ -72,10 +97,16 @@ public class MainFrame extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fileChooser = new JFileChooser();
+
+                // Criar um filtro para arquivos .txt
+                FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files (*.txt)", "txt");
+                fileChooser.setFileFilter(filter);
+
                 int returnValue = fileChooser.showOpenDialog(MainFrame.this);
                 if (returnValue == JFileChooser.APPROVE_OPTION) {
                     String filePath = fileChooser.getSelectedFile().getPath();
-                    readFile(filePath);
+                    String encoding = "UTF-8";
+                    readFile(filePath, encoding);
                 }
             }
         });
@@ -205,21 +236,22 @@ public class MainFrame extends JFrame {
         int frameWidth = getWidth();
         int frameHeight = getHeight();
 
-        int panelWidth = frameWidth / 2;
-        int panelHeight = frameHeight / 2;
+        int panelWidth = (int) (frameWidth * 0.8);
+        int panelHeight = (int) (frameHeight * 0.8);
 
         int x = (frameWidth - panelWidth) / 2;
         int y = (frameHeight - panelHeight) / 2;
 
         textPanel.setBounds(x, y, panelWidth, panelHeight);
     }
-
-    private void readFile(String filePath) {
+    
+    private void readFile(String filePath, String encoding) {
         SwingWorker<String, Void> worker = new SwingWorker<>() {
             @Override
             protected String doInBackground() throws Exception {
+                progressBar.setVisible(true); // Torna a barra de progresso visível
                 StringBuilder content = new StringBuilder();
-                try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), encoding))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         content.append(line).append("\n");
@@ -241,6 +273,8 @@ public class MainFrame extends JFrame {
                             "Error opening file: " + e.getMessage(),
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    progressBar.setVisible(false); // Torna a barra de progresso invisível
                 }
             }
         };
@@ -285,10 +319,15 @@ public class MainFrame extends JFrame {
     }
 
     private void showSystemInfo() {
-        String appInfo = "Shape Animation\n" +
-                "Version: 1.0.0\n" +
-                "Author: Group E\n" +
-                "Description: This application displays an animated shape in the background while allowing the viewing of text files in a centered area.";
+        String appInfo =
+                "Application Version 1.0\n"+
+                "Authors: Group E\n"+
+                "Jose Vitor Dutra Antonio 187174\n"+
+                "Sergio Carlos de Sousa Gregorio Junior 195405\n"+
+                "Nasser Nasser Fares 196894\n"+
+                "Marcelo Expedito Costa de Oliveira 248007\n"+
+                "Igor Akaida 259741\n"+
+                "Maria Eduarda de Souza Gomes 260844\n";
 
         JOptionPane.showMessageDialog(this,
                 appInfo,

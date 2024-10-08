@@ -307,7 +307,7 @@ public class MainFrame extends JFrame {
                 "Help:\n" +
                 "- This application allows you to view an animated shape while displaying the content of text files.\n" +
                 "- Use the menus to customize the animation and manage files.\n\n" +
-                "Developed by [Your Name]."
+                "Developed by Group E."
         );
 
         JScrollPane helpScrollPane = new JScrollPane(helpText);
